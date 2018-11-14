@@ -1,7 +1,7 @@
 # Личный проект «Кекстаграм» [![Build status][travis-image]][travis-url]
 
 * Студент: [Владимир Коломоец](https://up.htmlacademy.ru/javascript/16/user/836557).
-* Наставник: `Неизвестно`.
+* Наставник: [Вадим Шевяков](https://up.htmlacademy.ru/javascript/16/user/574589).
 
 ---
 
