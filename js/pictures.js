@@ -1,6 +1,6 @@
 'use strict';
 
-// исходные данные для картинок
+// исходные данные для объектов картинок
 
 var comments = [
   'Всё отлично!',
@@ -20,63 +20,70 @@ var descriptions = [
   'Вот это тачка!'
 ];
 
-var pictures = [];
-
 var numberOfPictures = 25;
 var likesMinNumber = 15;
 var likesMaxNumber = 200;
 var numberOfComments = 2;
 
-// конец исходных данных для картинок
+// конец исходных данных для объектов картинок
 
-
-// конструктор картинок
 
 var getRandomElement = function (array) {
+  /* Функция выбирает случайный элемент из массива*/
+
   var randomIndex = Math.floor(Math.random() * array.length);
   return array[randomIndex];
 };
 
-var getRandomComments = function (arrayOfComments, maxNumberOfComments) {
+var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
+  /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
 
   var uniqueIndexes = [];
-  var RandomComments = [];
+  var randomElements = [];
 
-  while (uniqueIndexes.length <= maxNumberOfComments) {
-    var randomIndex = Math.floor(Math.random() * arrayOfComments.length);
+  while (uniqueIndexes.length <= maxNumberOfElements) {
+    var randomIndex = Math.floor(Math.random() * inputArrayOfElements.length);
     if (uniqueIndexes.indexOf(randomIndex) === -1) {
       uniqueIndexes.push(randomIndex);
-      RandomComments.push(arrayOfComments[randomIndex]);
+      randomElements.push(inputArrayOfElements[randomIndex]);
     }
   }
-  return RandomComments;
+  return randomElements;
+};
+
+var PostRenderer = function PostRenderer(element, picture) {
+  this.element = element;
+  this.picture = picture;
+};
+
+PostRenderer.prototype.render = function () {
+  this.element.querySelector('.picture__img').setAttribute('src', this.picture.url);
+  this.element.querySelector('.picture__likes').textContent = this.picture.likes;
+  this.element.querySelector('.picture__comments').textContent = this.picture.comments.length;
+};
+
+var PicturesData = function () {
+  this.pictures = [];
+
+  for (var i = 0; i < numberOfPictures; i++) {
+    this.pictures.push({
+      url: 'photos/' + (i + 1) + '.jpg',
+      likes: Math.floor(likesMinNumber + Math.random() * (likesMaxNumber - likesMinNumber)),
+      comments: getRandomElements(comments, Math.random() * numberOfComments),
+      description: getRandomElement(descriptions)
+    });
+  }
 };
 
 
-for (var i = 0; i < numberOfPictures; i++) {
-  pictures.push({
-    url: 'photos/' + (i + 1) + '.jpg',
-    likes: Math.floor(likesMinNumber + Math.random() * (likesMaxNumber - likesMinNumber)),
-    comments: getRandomComments(comments, Math.random() * numberOfComments),
-    description: getRandomElement(descriptions)
-  });
+/* Функция формирует массив объектов картинок со всеми необходимыми свойствами для кекстаграмма*/
 
-  console.log('pictures url = ' + pictures[i].url);
-  console.log('pictures likes = ' + pictures[i].likes);
+var picturesData = new PicturesData();
 
-  console.log('pictures comments = ' + pictures[i].comments);
-  console.log('pictures comments 1 = ' + pictures[i].comments[0]);
-  console.log('pictures comments 2 = ' + pictures[i].comments[1]);
-  console.log('pictures comments.length = ' + pictures[i].comments.length);
-
-  console.log('pictures description = ' + pictures[i].description);
-  console.log('');
-}
-
-// конец конструктора картинок
+// конец конструктора объектов картинок на главный экран
 
 
-// добавление картинок в DOM
+// добавление элементов DOM
 
 var picturesContainer = document.querySelector('.pictures');
 
@@ -87,9 +94,8 @@ var pictureTemplate = document.querySelector('#picture')
 var addPicture = function (picture) {
   var newPicture = pictureTemplate.cloneNode(true);
 
-  newPicture.querySelector('.picture__img').setAttribute('src', picture.url);
-  newPicture.querySelector('.picture__likes').textContent = picture.likes;
-  newPicture.querySelector('.picture__comments').textContent = picture.comments.length;
+  var postRenderer = new PostRenderer(newPicture, picture);
+  postRenderer.render();
 
   return newPicture;
 };
@@ -98,13 +104,13 @@ var addPicture = function (picture) {
 var createDOMElements = function (array, elementGenerator, positionInDOM) {
   var fragment = document.createDocumentFragment();
 
-  for (i = 0; i < array.length; i++) {
+  for (var i = 0; i < array.length; i++) {
     fragment.appendChild(elementGenerator(array[i]));
   }
   positionInDOM.appendChild(fragment);
 };
 
-createDOMElements(pictures, addPicture, picturesContainer);
+createDOMElements(picturesData.pictures, addPicture, picturesContainer);
 
 
 var bigPicture = document.querySelector('.big-picture');
