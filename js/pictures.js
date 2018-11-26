@@ -28,15 +28,16 @@ var numberOfComments = 2;
 // конец исходных данных для объектов картинок
 
 
+/* Функция выбирает случайный элемент из массива*/
 var getRandomElement = function (array) {
-  /* Функция выбирает случайный элемент из массива*/
 
   var randomIndex = Math.floor(Math.random() * array.length);
   return array[randomIndex];
 };
 
+
+/* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
 var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
-  /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
 
   var uniqueIndexes = [];
   var randomElements = [];
@@ -51,22 +52,22 @@ var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
   return randomElements;
 };
 
-var PostRenderer = function PostRenderer(element, picture) {
-  this.element = element;
-  this.picture = picture;
+
+/* удалялка всех дочених элементов из DOM*/
+Element.prototype.removeAll = function () {
+  while (this.firstChild) {
+    this.removeChild(this.firstChild);
+  }
+  return this;
 };
 
-PostRenderer.prototype.render = function () {
-  this.element.querySelector('.picture__img').setAttribute('src', this.picture.url);
-  this.element.querySelector('.picture__likes').textContent = this.picture.likes;
-  this.element.querySelector('.picture__comments').textContent = this.picture.comments.length;
-};
 
+/* Класс описывает массив исходных данных для вставки в DOM */
 var PicturesData = function () {
-  this.pictures = [];
+  this.properties = [];
 
   for (var i = 0; i < numberOfPictures; i++) {
-    this.pictures.push({
+    this.properties.push({
       url: 'photos/' + (i + 1) + '.jpg',
       likes: Math.floor(likesMinNumber + Math.random() * (likesMaxNumber - likesMinNumber)),
       comments: getRandomElements(comments, Math.random() * numberOfComments),
@@ -75,15 +76,25 @@ var PicturesData = function () {
   }
 };
 
-
-/* Функция формирует массив объектов картинок со всеми необходимыми свойствами для кекстаграмма*/
-
+/* Объект класса содержит готовый массив для вставки в DOM */
 var picturesData = new PicturesData();
 
-// конец конструктора объектов картинок на главный экран
+
+/* Класс описывает картинку, лайки, комментарии и т.п. */
+var PostRenderer = function PostRenderer(element, picture) {
+  this.element = element;
+  this.picture = picture;
+};
+
+/* Метод отрисовывает превью картинок */
+PostRenderer.prototype.renderPreview = function () {
+  this.element.querySelector('.picture__img').src = this.picture.url;
+  this.element.querySelector('.picture__likes').textContent = this.picture.likes;
+  this.element.querySelector('.picture__comments').textContent = this.picture.comments.length;
+};
 
 
-// добавление элементов DOM
+/* добавление превью картинок в DOM*/
 
 var picturesContainer = document.querySelector('.pictures');
 
@@ -91,28 +102,68 @@ var pictureTemplate = document.querySelector('#picture')
   .content
   .querySelector('.picture');
 
-var addPicture = function (picture) {
+
+var addPicture = function (pictureData) {
   var newPicture = pictureTemplate.cloneNode(true);
 
-  var postRenderer = new PostRenderer(newPicture, picture);
-  postRenderer.render();
+  var postRenderer = new PostRenderer(newPicture, pictureData);
+  postRenderer.renderPreview();
 
   return newPicture;
 };
 
 
-var createDOMElements = function (array, elementGenerator, positionInDOM) {
+var createDomElements = function (dataArray, elementGenerator, positionInDOM) {
   var fragment = document.createDocumentFragment();
 
-  for (var i = 0; i < array.length; i++) {
-    fragment.appendChild(elementGenerator(array[i]));
+  for (var i = 0; i < dataArray.length; i++) {
+    fragment.appendChild(elementGenerator(dataArray[i]));
   }
   positionInDOM.appendChild(fragment);
 };
 
-createDOMElements(picturesData.pictures, addPicture, picturesContainer);
+createDomElements(picturesData.properties, addPicture, picturesContainer);
 
+
+/* Добавление информации в увеличенную картинку*/
 
 var bigPicture = document.querySelector('.big-picture');
 
+
+/* показываем пост*/
 bigPicture.classList.remove('hidden');
+
+
+/* Формируем пост*/
+
+bigPicture.querySelector('.big-picture__img img').src = picturesData.properties[0].url;
+bigPicture.querySelector('.likes-count').textContent = picturesData.properties[0].likes;
+bigPicture.querySelector('.comments-count').textContent = picturesData.properties[0].comments.length;
+bigPicture.querySelector('.social__caption').textContent = picturesData.properties[0].description;
+
+bigPicture.querySelector('.social__comment-count').classList.add('visually-hidden');
+bigPicture.querySelector('.comments-loader').classList.add('visually-hidden');
+
+
+/* Формируем блок комментариев*/
+
+var fragment = document.createDocumentFragment();
+
+
+var commentContainer = bigPicture.querySelector('.social__comments');
+var commentTemplate = commentContainer.querySelector('.social__comment');
+
+
+/* Удаляем старые комментарии из поста*/
+commentContainer.removeAll();
+
+/* Создаем новые комментарии*/
+for (var i = 0; i < picturesData.properties[0].comments.length; i++) {
+  var newComment = commentTemplate.cloneNode(true);
+
+  newComment.querySelector('.social__picture').src = 'img/avatar-' + Math.floor(Math.random() * 6 + 1) + '.svg';
+  newComment.querySelector('.social__text').textContent = picturesData.properties[0].comments[i];
+
+  fragment.appendChild(newComment);
+  commentContainer.appendChild(fragment);
+}
