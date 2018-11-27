@@ -1,33 +1,5 @@
 'use strict';
 
-/* исходные данные для объектов картинок*/
-
-var comments = [
-  'Всё отлично!',
-  'В целом всё неплохо. Но не всё.',
-  'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.',
-  'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.',
-  'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.',
-  'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
-];
-
-var descriptions = [
-  'Тестим новую камеру!',
-  'Затусили с друзьями на море',
-  'Как же круто тут кормят',
-  'Отдыхаем...',
-  'Цените каждое мгновенье. Цените тех, кто рядом с вами и отгоняйте все сомненья. Не обижайте всех словами......',
-  'Вот это тачка!'
-];
-
-var numberOfPictures = 25;
-var likesMinNumber = 15;
-var likesMaxNumber = 200;
-var numberOfComments = 2;
-
-/* конец исходных данных для объектов картинок*/
-
-
 /* Функция выбирает случайный элемент из массива*/
 var getRandomElement = function (array) {
 
@@ -38,7 +10,6 @@ var getRandomElement = function (array) {
 
 /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
 var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
-
   inputArrayOfElements = inputArrayOfElements.slice();
 
   if (inputArrayOfElements.length < maxNumberOfElements) {
@@ -47,10 +18,10 @@ var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
 
   var randomElements = [];
 
-  while (randomElements.length <= maxNumberOfElements) {
+  while (randomElements.length < maxNumberOfElements) {
     var randomIndex = Math.floor(Math.random() * inputArrayOfElements.length);
     randomElements.push(inputArrayOfElements[randomIndex]);
-    inputArrayOfElements.splice(randomElements, 1);
+    inputArrayOfElements.splice(randomIndex, 1);
   }
   return randomElements;
 };
@@ -60,15 +31,39 @@ var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
 var PicturesData = function () {
   this.properties = [];
 
-  for (var i = 0; i < numberOfPictures; i++) {
+  for (var i = 0; i < this.numberOfPictures; i++) {
     this.properties.push({
       url: 'photos/' + (i + 1) + '.jpg',
-      likes: Math.floor(likesMinNumber + Math.random() * (likesMaxNumber - likesMinNumber)),
-      comments: getRandomElements(comments, Math.random() * numberOfComments),
-      description: getRandomElement(descriptions)
+      likes: Math.floor(this.likesMinNumber + Math.random() * (this.likesMaxNumber - this.likesMinNumber)),
+      comments: getRandomElements(this.inputComments, Math.random() * (this.numberOfComments)),
+      description: getRandomElement(this.inputdescriptions)
     });
   }
 };
+
+PicturesData.prototype.inputComments = [
+  'Всё отлично!',
+  'В целом всё неплохо. Но не всё.',
+  'Когда вы делаете фотографию, хорошо бы убирать палец из кадра. В конце концов это просто непрофессионально.',
+  'Моя бабушка случайно чихнула с фотоаппаратом в руках и у неё получилась фотография лучше.',
+  'Я поскользнулся на банановой кожуре и уронил фотоаппарат на кота и у меня получилась фотография лучше.',
+  'Лица у людей на фотке перекошены, как будто их избивают. Как можно было поймать такой неудачный момент?!'
+];
+
+PicturesData.prototype.inputdescriptions = [
+  'Тестим новую камеру!',
+  'Затусили с друзьями на море',
+  'Как же круто тут кормят',
+  'Отдыхаем...',
+  'Цените каждое мгновенье. Цените тех, кто рядом с вами и отгоняйте все сомненья. Не обижайте всех словами......',
+  'Вот это тачка!'
+];
+
+PicturesData.prototype.numberOfPictures = 25;
+PicturesData.prototype.likesMinNumber = 15;
+PicturesData.prototype.likesMaxNumber = 200;
+PicturesData.prototype.numberOfComments = 2;
+
 
 /* Объект класса содержит готовый массив для вставки в DOM */
 var picturesData = new PicturesData();
