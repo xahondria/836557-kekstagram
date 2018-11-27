@@ -176,6 +176,17 @@ var BigPictureRenderer = {
       ev.stopPropagation();
       $this.hide();
     });
+
+    window.addEventListener('keydown', function (ev) {
+      if (ev.which === 27) {
+        ev.preventDefault();
+
+        if (!$this.element.classList.contains('hidden')) {
+          $this.hide();
+        }
+      }
+    });
+
   }
 };
 
