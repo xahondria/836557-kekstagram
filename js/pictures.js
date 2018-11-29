@@ -171,6 +171,7 @@ var BigPictureRenderer = {
       return;
     }
     this.__eventsBinded__ = true;
+
     this.element.querySelector('.big-picture__cancel').addEventListener('click', function (ev) {
       ev.preventDefault();
       ev.stopPropagation();
@@ -178,7 +179,7 @@ var BigPictureRenderer = {
     });
 
     window.addEventListener('keydown', function (ev) {
-      if (ev.which === 27) {
+      if (ev.key === 'Escape') {
         ev.preventDefault();
 
         if (!$this.element.classList.contains('hidden')) {
@@ -191,3 +192,75 @@ var BigPictureRenderer = {
 };
 
 BigPictureRenderer.bindEvents();
+
+
+/* Класс описывает редактор загружаемых изображений*/
+var PictureUploader = function PictureUploader() {
+  this.element = document.querySelector('.img-upload');
+
+  this.uploadOverlay = this.element.querySelector('.img-upload__overlay');
+  this.uploadOverlayHideButton = this.element.querySelector('.img-upload__cancel');
+  this.inputFile = this.element.querySelector('#upload-file');
+
+  this.effectLevelPin = this.element.querySelector('.effect-level__pin');
+  this.effectLevelLine = this.element.querySelector('.effect-level__line');
+  this.effectLevel = this.element.querySelector('.effect-level__value');
+
+};
+
+PictureUploader.prototype.show = function () {
+  this.uploadOverlay.classList.remove('hidden');
+};
+
+PictureUploader.prototype.hide = function () {
+  this.uploadOverlay.classList.add('hidden');
+  this.inputFile.value = '';
+};
+
+PictureUploader.prototype.bindEvents = function () {
+  var $this = this;
+
+  if (this.__eventsBinded__) {
+    return;
+  }
+  this.__eventsBinded__ = true;
+
+  // Открываем попап
+  this.inputFile.addEventListener('change', function (ev) {
+    ev.preventDefault();
+    $this.show();
+  });
+
+  // Закрываем попап
+  this.uploadOverlayHideButton.addEventListener('click', function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    $this.hide();
+  });
+
+  // Закрываем попап
+  window.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') {
+      ev.preventDefault();
+
+      if (!$this.uploadOverlay.classList.contains('hidden')) {
+        $this.hide();
+      }
+    }
+  });
+
+  // Записываем значение уровня насыщенности в соответствующий input
+  this.effectLevelPin.addEventListener('mouseup', function (ev) {
+    ev.preventDefault();
+
+    var maxValue = $this.effectLevelLine.offsetWidth;
+    var value = $this.effectLevelPin.offsetLeft;
+
+    $this.effectLevel.value = Math.round(100 * value / maxValue);
+  });
+
+};
+
+var pictureUploader = new PictureUploader();
+
+pictureUploader.bindEvents();
