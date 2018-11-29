@@ -26,6 +26,16 @@ var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
   return randomElements;
 };
 
+/* Функция создает фрагмент разметки и вставляет его в заданное место*/
+var createDomElements = function (dataArray, elementGenerator, positionInDom) {
+  var fragment = document.createDocumentFragment();
+
+  dataArray.forEach(function (data) {
+    fragment.appendChild(elementGenerator(data));
+  });
+
+  positionInDom.appendChild(fragment);
+};
 
 /* Класс описывает массив исходных данных для вставки в DOM */
 var PicturesData = function () {
@@ -65,10 +75,6 @@ PicturesData.prototype.likesMaxNumber = 200;
 PicturesData.prototype.numberOfComments = 2;
 
 
-/* Объект класса содержит готовый массив для вставки в DOM */
-var picturesData = new PicturesData();
-
-
 /* Класс описывает превью картинки на главной странице */
 var PostRenderer = function PostRenderer(picture) {
   this.element = PostRenderer.template.cloneNode(true);
@@ -96,6 +102,16 @@ PostRenderer.template = document.querySelector('#picture')
 /* Сюда вставляем готовую разметку с картинками*/
 PostRenderer.container = document.querySelector('.pictures');
 
+/**
+ *
+ * @param {Object} pictureData
+ * @param {string} pictureData.url
+ * @param {string} pictureData.description
+ * @param {number} pictureData.likes
+ * @param {Object[]} pictureData.comments
+ *
+ * @return {HTMLElement}
+ */
 PostRenderer.addPicture = function (pictureData) {
 
   var postRenderer = new PostRenderer(pictureData);
@@ -103,20 +119,6 @@ PostRenderer.addPicture = function (pictureData) {
 
   return postRenderer.element;
 };
-
-
-/* Функция создает фрагмент разметки и вставляет его в заданное место*/
-var createDomElements = function (dataArray, elementGenerator, positionInDom) {
-  var fragment = document.createDocumentFragment();
-
-  for (var i = 0; i < dataArray.length; i++) {
-    fragment.appendChild(elementGenerator(dataArray[i]));
-  }
-  positionInDom.appendChild(fragment);
-};
-
-createDomElements(picturesData.properties, PostRenderer.addPicture, PostRenderer.container);
-
 
 /* Объект описывает попап с большой картинкой, комментариями, описанием и т.п. */
 var BigPictureRenderer = {
@@ -162,7 +164,9 @@ var BigPictureRenderer = {
   },
 
   hide: function () {
-    this.element.classList.add('hidden');
+    if (!this.element.classList.contains('hidden')) {
+      this.element.classList.add('hidden');
+    }
   },
 
   bindEvents: function () {
@@ -182,16 +186,12 @@ var BigPictureRenderer = {
       if (ev.key === 'Escape') {
         ev.preventDefault();
 
-        if (!$this.element.classList.contains('hidden')) {
-          $this.hide();
-        }
+        $this.hide();
       }
     });
 
   }
 };
-
-BigPictureRenderer.bindEvents();
 
 
 /* Класс описывает редактор загружаемых изображений*/
@@ -206,6 +206,10 @@ var PictureUploader = function PictureUploader() {
   this.effectLevelLine = this.element.querySelector('.effect-level__line');
   this.effectLevel = this.element.querySelector('.effect-level__value');
 
+  this.effectSwitch = this.element.querySelectorAll('.effects__radio');
+
+  this.picture = this.element.querySelector('.img-upload__preview img');
+
 };
 
 PictureUploader.prototype.show = function () {
@@ -213,22 +217,48 @@ PictureUploader.prototype.show = function () {
 };
 
 PictureUploader.prototype.hide = function () {
-  this.uploadOverlay.classList.add('hidden');
+  if (!this.uploadOverlay.classList.contains('hidden')) {
+    this.uploadOverlay.classList.add('hidden');
+  }
   this.inputFile.value = '';
 };
 
-PictureUploader.prototype.bindEvents = function () {
-  var $this = this;
+/**
+ * @param {HTMLInputElement} effect checkbox element
+ */
+PictureUploader.prototype.setEffect = function (effect) {
+  if (!effect.checked) {
+    this.picture.className = '';
+    return;
+  }
+  this.picture.className = 'effects__preview--' + effect.value;
+};
 
+PictureUploader.prototype.bindEvents = function () {
   if (this.__eventsBinded__) {
     return;
   }
   this.__eventsBinded__ = true;
 
+  this.bindPopupEvents();
+  this.bindEffectEvents();
+};
+
+PictureUploader.prototype.bindPopupEvents = function () {
+  var $this = this;
   // Открываем попап
   this.inputFile.addEventListener('change', function (ev) {
     ev.preventDefault();
-    $this.show();
+    if ($this.inputFile.files.length > 0) {
+      $this.loadImage($this.inputFile.files[0], function (err, base64Image) {
+        if (err) {
+          // TODO: show error
+          return;
+        }
+        $this.picture.src = base64Image;
+        $this.show();
+      });
+    }
   });
 
   // Закрываем попап
@@ -242,13 +272,13 @@ PictureUploader.prototype.bindEvents = function () {
   window.addEventListener('keydown', function (ev) {
     if (ev.key === 'Escape') {
       ev.preventDefault();
-
-      if (!$this.uploadOverlay.classList.contains('hidden')) {
-        $this.hide();
-      }
+      $this.hide();
     }
   });
+};
 
+PictureUploader.prototype.bindEffectEvents = function () {
+  var $this = this;
   // Записываем значение уровня насыщенности в соответствующий input
   this.effectLevelPin.addEventListener('mouseup', function (ev) {
     ev.preventDefault();
@@ -259,8 +289,48 @@ PictureUploader.prototype.bindEvents = function () {
     $this.effectLevel.value = Math.round(100 * value / maxValue);
   });
 
+  // Устанавливаем эффект
+  this.effectSwitch.forEach(function (effect) {
+    effect.addEventListener('change', function () {
+      $this.setEffect(effect);
+    });
+  });
 };
 
-var pictureUploader = new PictureUploader();
+/**
+ * Загружает изображение из файла в виде base64
+ * @param {File} file файл с изображением
+ * @param {Function} cb callback(err, base64image)
+ */
+PictureUploader.prototype.loadImage = function (file, cb) {
+  if (file.type.indexOf('image/') !== 0) {
+    cb(new Error('FILE_NOT_IMAGE'));
+    return;
+  }
+  var reader = new FileReader();
+  reader.readAsDataURL(file);
 
-pictureUploader.bindEvents();
+  reader.addEventListener('load', function () {
+    cb(null, reader.result);
+  });
+
+  reader.addEventListener('error', function (err) {
+    cb(err);
+  });
+};
+
+/*
+ * Основной код программы
+ */
+
+(function () {
+  var picturesData = new PicturesData();
+
+  createDomElements(picturesData.properties, PostRenderer.addPicture, PostRenderer.container);
+
+  BigPictureRenderer.bindEvents();
+
+  var pictureUploader = new PictureUploader();
+
+  pictureUploader.bindEvents();
+})();
