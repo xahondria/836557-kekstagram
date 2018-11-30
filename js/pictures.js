@@ -164,9 +164,7 @@ var BigPictureRenderer = {
   },
 
   hide: function () {
-    if (!this.element.classList.contains('hidden')) {
-      this.element.classList.add('hidden');
-    }
+    this.element.classList.add('hidden');
   },
 
   bindEvents: function () {
@@ -217,9 +215,7 @@ PictureUploader.prototype.show = function () {
 };
 
 PictureUploader.prototype.hide = function () {
-  if (!this.uploadOverlay.classList.contains('hidden')) {
-    this.uploadOverlay.classList.add('hidden');
-  }
+  this.uploadOverlay.classList.add('hidden');
   this.inputFile.value = '';
 };
 
@@ -250,12 +246,12 @@ PictureUploader.prototype.bindPopupEvents = function () {
   this.inputFile.addEventListener('change', function (ev) {
     ev.preventDefault();
     if ($this.inputFile.files.length > 0) {
-      $this.loadImage($this.inputFile.files[0], function (err, base64Image) {
+      $this.loadImage($this.inputFile.files[0], function (err, imgURL) {
         if (err) {
           // TODO: show error
           return;
         }
-        $this.picture.src = base64Image;
+        $this.picture.src = imgURL;
         $this.show();
       });
     }
@@ -307,16 +303,8 @@ PictureUploader.prototype.loadImage = function (file, cb) {
     cb(new Error('FILE_NOT_IMAGE'));
     return;
   }
-  var reader = new FileReader();
-  reader.readAsDataURL(file);
 
-  reader.addEventListener('load', function () {
-    cb(null, reader.result);
-  });
-
-  reader.addEventListener('error', function (err) {
-    cb(err);
-  });
+  cb(null, window.URL.createObjectURL(file));
 };
 
 /*
