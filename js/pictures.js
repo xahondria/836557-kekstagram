@@ -307,6 +307,48 @@ PictureUploader.prototype.loadImage = function (file, cb) {
   cb(null, window.URL.createObjectURL(file));
 };
 
+PictureUploader.prototype.validateForm = function (input) {
+  var findDuplicates = function (arr) {
+    var values = {};
+    arr.forEach(function (element) {
+      if (element in values) {
+        return console.log('Один и тот же хэш-тег не может быть использован дважды');
+      }
+      values[element] = true;
+    });
+    return false;
+  };
+
+  var str = '#Один #четыре #три #два';
+
+  str = str.toLowerCase();
+
+  var arr = str.split(' ');
+  console.log(arr);
+
+  if (arr.length > 5) {
+    console.log('Нельзя указать больше пяти хэш-тегов');
+  } else {
+    arr.forEach(function (element) {
+
+      if (element.indexOf('#') !== 0) {
+        console.log('Хеш-тег должен начинаться с символа #');
+
+      } else if (element.length < 2) {
+        console.log('Хеш-тег не может состоять только из одной решётки');
+
+      } else if (element.length >= 20) {
+        console.log('Хеш-тег должен быть короче 20 символов');
+      }
+    });
+  }
+
+  console.log('_____________________');
+
+  findDuplicates(arr);
+
+};
+
 /*
  * Основной код программы
  */
