@@ -317,28 +317,32 @@ PictureUploader.prototype.loadImage = function (file, cb) {
 };
 
 /* события валидации формы*/
+PictureUploader.prototype.findDuplicates = function (arr, message) {
+  var $this = this;
+
+  var values = {};
+  arr.forEach(function (element) {
+    if (element in values) {
+      return $this.hashtagsInput.setCustomValidity(message);
+    }
+    values[element] = true;
+    return $this.hashtagsInput.setCustomValidity('');
+  });
+  return false;
+};
+
 PictureUploader.prototype.validateForm = function () {
   var $this = this;
 
   /* hashtags*/
   this.hashtagsInput.addEventListener('change', function () {
 
-    var findDuplicates = function (arr, message) {
-      var values = {};
-      arr.forEach(function (element) {
-        if (element in values) {
-          return $this.hashtagsInput.setCustomValidity(message);
-        }
-        values[element] = true;
-        return $this.hashtagsInput.setCustomValidity('');
-      });
-      return false;
-    };
-
     var str = $this.hashtagsInput.value;
     str = str.toLowerCase();
 
     var arr = str.split(' ');
+
+    $this.findDuplicates(arr, 'Один и тот же хэш-тег не может быть использован дважды');
 
     if (arr.length > 5) {
       $this.hashtagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
@@ -354,9 +358,8 @@ PictureUploader.prototype.validateForm = function () {
         } else if (element.length >= 20) {
           $this.hashtagsInput.setCustomValidity('Хеш-тег должен быть короче 20 символов');
 
-        } else {
-          findDuplicates(arr, 'Один и тот же хэш-тег не может быть использован дважды');
         }
+
       });
     }
   });
