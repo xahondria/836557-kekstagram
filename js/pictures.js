@@ -1,5 +1,43 @@
 'use strict';
 
+// utils
+/* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
+var moveSliderPin = function (sliderElement, sliderPin, cb) {
+  sliderPin.addEventListener('mousedown', function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var sliderWidth = sliderElement.getBoundingClientRect().width;
+    var sliderCoordX = sliderElement.getBoundingClientRect().left;
+
+    var onMouseMove = function (moveEv) {
+      moveEv.preventDefault();
+      var newCoordX = moveEv.clientX;
+
+      var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
+
+      if (sliderValue < 0) {
+        sliderValue = 0;
+      } else if (sliderValue > 1) {
+        sliderValue = 1;
+      }
+      cb(sliderValue);
+
+    };
+
+    var onMouseUp = function (upEv) {
+      upEv.preventDefault();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+
+  });
+
+};
+
 /* Функция выбирает случайный элемент из массива*/
 var getRandomElement = function (array) {
 
@@ -202,9 +240,15 @@ var PictureUploader = function PictureUploader() {
 
   this.effectLevelPin = this.element.querySelector('.effect-level__pin');
   this.effectLevelLine = this.element.querySelector('.effect-level__line');
+  this.effectLevelDepth = this.element.querySelector('.effect-level__depth');
   this.effectLevel = this.element.querySelector('.effect-level__value');
 
-  this.effectSwitch = this.element.querySelectorAll('.effects__radio');
+  this.effectsRadio = this.element.querySelectorAll('.effects__radio');
+  this.defaultEffect = this.element.querySelector('#effect-heat');
+  this.defaultEffectValue = 1;
+  this.currentEffectValue = this.defaultEffect.value;
+
+  this.slider = this.element.querySelector('.img-upload__effect-level');
 
   this.picture = this.element.querySelector('.img-upload__preview img');
 
@@ -229,7 +273,13 @@ PictureUploader.prototype.setEffect = function (effect) {
     this.picture.className = '';
     return;
   }
+  this.currentEffectValue = effect.value;
   this.picture.className = 'effects__preview--' + effect.value;
+
+  this.setEffectValue(this.defaultEffectValue);
+  this.effectLevelPin.style.left = 100 * this.defaultEffectValue + '%';
+  this.effectLevelDepth.style.width = 100 * this.defaultEffectValue + '%';
+
 };
 
 /* События*/
@@ -258,6 +308,9 @@ PictureUploader.prototype.bindPopupEvents = function () {
           return;
         }
         $this.picture.src = imgURL;
+        $this.defaultEffect.checked = true;
+        $this.setEffect($this.defaultEffect);
+
         $this.show();
       });
     }
@@ -284,22 +337,59 @@ PictureUploader.prototype.bindPopupEvents = function () {
 /* события эффектов на фотографиях*/
 PictureUploader.prototype.bindEffectEvents = function () {
   var $this = this;
-  // Записываем значение уровня насыщенности в соответствующий input
-  this.effectLevelPin.addEventListener('mouseup', function (ev) {
-    ev.preventDefault();
-
-    var maxValue = $this.effectLevelLine.offsetWidth;
-    var value = $this.effectLevelPin.offsetLeft;
-
-    $this.effectLevel.value = Math.round(100 * value / maxValue);
-  });
 
   // Устанавливаем эффект
-  this.effectSwitch.forEach(function (effect) {
+  this.effectsRadio.forEach(function (effect) {
     effect.addEventListener('change', function () {
       $this.setEffect(effect);
+
     });
   });
+
+  // перемещаем ползунок слайдера
+  moveSliderPin(this.effectLevelLine, this.effectLevelPin, function (value) {
+    $this.effectLevelPin.style.left = value * 100 + '%';
+    $this.effectLevelDepth.style.width = value * 100 + '%';
+
+    $this.setEffectValue(value);
+  });
+};
+
+// Записываем значение уровня насыщенности в соответствующий input и в превью
+PictureUploader.prototype.setEffectValue = function (value) {
+  var $this = this;
+
+  if ($this.currentEffectValue === 'none') {
+    this.slider.classList.add('hidden');
+    $this.picture.style.filter = '';
+
+
+  } else if ($this.currentEffectValue === 'chrome') {
+    this.slider.classList.remove('hidden');
+    $this.picture.style.filter = 'grayscale(' + value + ')';
+    $this.effectLevel.value = Math.round(100 * value);
+
+  } else if ($this.currentEffectValue === 'sepia') {
+    this.slider.classList.remove('hidden');
+    $this.picture.style.filter = 'sepia(' + value + ')';
+    $this.effectLevel.value = Math.round(100 * value);
+
+  } else if ($this.currentEffectValue === 'marvin') {
+    this.slider.classList.remove('hidden');
+    $this.picture.style.filter = 'invert(' + 100 * value + '%)';
+    $this.effectLevel.value = Math.round(100 * value);
+
+  } else if ($this.currentEffectValue === 'phobos') {
+    this.slider.classList.remove('hidden');
+    $this.picture.style.filter = 'blur(' + 3 * value + 'px)';
+    $this.effectLevel.value = Math.round(100 * value);
+
+  } else if ($this.currentEffectValue === 'heat') {
+    this.slider.classList.remove('hidden');
+    $this.picture.style.filter = 'brightness(' + 3 * value + ')';
+    $this.effectLevel.value = Math.round(100 * value);
+
+  }
 };
 
 /**
