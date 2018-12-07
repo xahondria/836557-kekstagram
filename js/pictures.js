@@ -238,6 +238,13 @@ var PictureUploader = function PictureUploader() {
   this.uploadOverlayHideButton = this.element.querySelector('.img-upload__cancel');
   this.inputFile = this.element.querySelector('#upload-file');
 
+  // масштаб увеличенного изображения
+  this.scaleControlSmaller = this.element.querySelector('.scale__control--smaller');
+  this.scaleControlBigger = this.element.querySelector('.scale__control--bigger');
+  this.scaleControlValue = this.element.querySelector('.scale__control--value');
+  this.scaleControlValueDefault = 100;
+  this.scaleControlValueCurrent = 100;
+
   this.effectLevelPin = this.element.querySelector('.effect-level__pin');
   this.effectLevelLine = this.element.querySelector('.effect-level__line');
   this.effectLevelDepth = this.element.querySelector('.effect-level__depth');
@@ -292,6 +299,7 @@ PictureUploader.prototype.bindEvents = function () {
   this.bindPopupEvents();
   this.bindEffectEvents();
   this.validateForm();
+  this.bindScaleEvents();
 
 };
 
@@ -310,6 +318,9 @@ PictureUploader.prototype.bindPopupEvents = function () {
         $this.picture.src = imgURL;
         $this.defaultEffect.checked = true;
         $this.setEffect($this.defaultEffect);
+        $this.scaleControlValueCurrent = $this.scaleControlValueDefault;
+        $this.setScaleControlValue($this.scaleControlValueDefault);
+        $this.setImgScale($this.scaleControlValueDefault / 100);
 
         $this.show();
       });
@@ -454,6 +465,38 @@ PictureUploader.prototype.validateForm = function () {
     }
   });
 
+};
+
+// события изменения масштаба картинки
+PictureUploader.prototype.bindScaleEvents = function () {
+  var $this = this;
+
+  this.scaleControlBigger.addEventListener('click', function () {
+    $this.scaleControlValueCurrent += 25;
+    if ($this.scaleControlValueCurrent > 100) {
+      $this.scaleControlValueCurrent = 100;
+    }
+    $this.setScaleControlValue($this.scaleControlValueCurrent);
+    $this.setImgScale($this.scaleControlValueCurrent / 100);
+  });
+
+  this.scaleControlSmaller.addEventListener('click', function () {
+    $this.scaleControlValueCurrent -= 25;
+    if ($this.scaleControlValueCurrent < 0) {
+      $this.scaleControlValueCurrent = 0;
+    }
+    $this.setScaleControlValue($this.scaleControlValueCurrent);
+    $this.setImgScale($this.scaleControlValueCurrent / 100);
+  });
+
+};
+
+PictureUploader.prototype.setScaleControlValue = function (value) {
+  this.scaleControlValue.value = value + '%';
+};
+
+PictureUploader.prototype.setImgScale = function (value) {
+  this.picture.style.transform = 'scale(' + value + ')';
 };
 
 /*
