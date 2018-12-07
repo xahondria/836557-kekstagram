@@ -482,8 +482,8 @@ PictureUploader.prototype.bindScaleEvents = function () {
 
   this.scaleControlSmaller.addEventListener('click', function () {
     $this.scaleControlValueCurrent -= 25;
-    if ($this.scaleControlValueCurrent < 0) {
-      $this.scaleControlValueCurrent = 0;
+    if ($this.scaleControlValueCurrent < 25) {
+      $this.scaleControlValueCurrent = 25;
     }
     $this.setScaleControlValue($this.scaleControlValueCurrent);
     $this.setImgScale($this.scaleControlValueCurrent / 100);
