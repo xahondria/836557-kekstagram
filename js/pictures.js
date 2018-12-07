@@ -1,5 +1,56 @@
 'use strict';
 
+// utils
+
+/*
+ *
+ * Returns a number whose value is limited to the given range.
+ *
+ * Example: limit the output of this computation to between 0 and 255
+ * (x * 255).clamp(0, 255)
+ *
+ * @param {Number} min The lower boundary of the output range
+ * @param {Number} max The upper boundary of the output range
+ * @returns A number in the range [min, max]
+ * @type Number
+ */
+var clamp = function (value, min, max) {
+  return Math.min(Math.max(value, min), max);
+};
+
+
+/* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
+var moveSliderPin = function (sliderElement, sliderPin, cb) {
+  sliderPin.addEventListener('mousedown', function (ev) {
+    ev.preventDefault();
+    ev.stopPropagation();
+
+    var sliderWidth = sliderElement.getBoundingClientRect().width;
+    var sliderCoordX = sliderElement.getBoundingClientRect().left;
+
+    var onMouseMove = function (moveEv) {
+      moveEv.preventDefault();
+      var newCoordX = moveEv.clientX;
+
+      var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
+
+      cb(clamp(sliderValue, 0, 1));
+
+    };
+
+    var onMouseUp = function (upEv) {
+      upEv.preventDefault();
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+
+  });
+
+};
+
 /* Функция выбирает случайный элемент из массива*/
 var getRandomElement = function (array) {
 
@@ -200,11 +251,24 @@ var PictureUploader = function PictureUploader() {
   this.uploadOverlayHideButton = this.element.querySelector('.img-upload__cancel');
   this.inputFile = this.element.querySelector('#upload-file');
 
+  // масштаб увеличенного изображения
+  this.scaleControlSmaller = this.element.querySelector('.scale__control--smaller');
+  this.scaleControlBigger = this.element.querySelector('.scale__control--bigger');
+  this.scaleControlValue = this.element.querySelector('.scale__control--value');
+  this.scaleControlValueDefault = 100;
+  this.scaleControlValueCurrent = 100;
+
   this.effectLevelPin = this.element.querySelector('.effect-level__pin');
   this.effectLevelLine = this.element.querySelector('.effect-level__line');
+  this.effectLevelDepth = this.element.querySelector('.effect-level__depth');
   this.effectLevel = this.element.querySelector('.effect-level__value');
 
-  this.effectSwitch = this.element.querySelectorAll('.effects__radio');
+  this.effectsRadio = this.element.querySelectorAll('.effects__radio');
+  this.defaultEffect = this.element.querySelector('#effect-heat');
+  this.defaultEffectValue = 1;
+  this.currentEffectValue = this.defaultEffect.value;
+
+  this.slider = this.element.querySelector('.img-upload__effect-level');
 
   this.picture = this.element.querySelector('.img-upload__preview img');
 
@@ -229,7 +293,13 @@ PictureUploader.prototype.setEffect = function (effect) {
     this.picture.className = '';
     return;
   }
+  this.currentEffectValue = effect.value;
   this.picture.className = 'effects__preview--' + effect.value;
+
+  this.setEffectValue(this.defaultEffectValue);
+  this.effectLevelPin.style.left = 100 * this.defaultEffectValue + '%';
+  this.effectLevelDepth.style.width = 100 * this.defaultEffectValue + '%';
+
 };
 
 /* События*/
@@ -242,6 +312,7 @@ PictureUploader.prototype.bindEvents = function () {
   this.bindPopupEvents();
   this.bindEffectEvents();
   this.validateForm();
+  this.bindScaleEvents();
 
 };
 
@@ -258,6 +329,12 @@ PictureUploader.prototype.bindPopupEvents = function () {
           return;
         }
         $this.picture.src = imgURL;
+        $this.defaultEffect.checked = true;
+        $this.setEffect($this.defaultEffect);
+        $this.scaleControlValueCurrent = $this.scaleControlValueDefault;
+        $this.setScaleControlValue($this.scaleControlValueDefault);
+        $this.setImgScale($this.scaleControlValueDefault / 100);
+
         $this.show();
       });
     }
@@ -284,22 +361,54 @@ PictureUploader.prototype.bindPopupEvents = function () {
 /* события эффектов на фотографиях*/
 PictureUploader.prototype.bindEffectEvents = function () {
   var $this = this;
-  // Записываем значение уровня насыщенности в соответствующий input
-  this.effectLevelPin.addEventListener('mouseup', function (ev) {
-    ev.preventDefault();
-
-    var maxValue = $this.effectLevelLine.offsetWidth;
-    var value = $this.effectLevelPin.offsetLeft;
-
-    $this.effectLevel.value = Math.round(100 * value / maxValue);
-  });
 
   // Устанавливаем эффект
-  this.effectSwitch.forEach(function (effect) {
+  this.effectsRadio.forEach(function (effect) {
     effect.addEventListener('change', function () {
       $this.setEffect(effect);
+
     });
   });
+
+  // перемещаем ползунок слайдера
+  moveSliderPin(this.effectLevelLine, this.effectLevelPin, function (value) {
+    $this.effectLevelPin.style.left = value * 100 + '%';
+    $this.effectLevelDepth.style.width = value * 100 + '%';
+
+    $this.setEffectValue(value);
+  });
+};
+
+// Записываем значение уровня насыщенности в соответствующий input и в превью
+PictureUploader.prototype.setEffectValue = function (value) {
+  var $this = this;
+
+  if ($this.currentEffectValue === 'none') {
+    this.slider.classList.add('hidden');
+    $this.picture.style.filter = '';
+
+  } else if ($this.currentEffectValue === 'chrome') {
+    $this.picture.style.filter = 'grayscale(' + value + ')';
+
+  } else if ($this.currentEffectValue === 'sepia') {
+    $this.picture.style.filter = 'sepia(' + value + ')';
+
+  } else if ($this.currentEffectValue === 'marvin') {
+    $this.picture.style.filter = 'invert(' + 100 * value + '%)';
+
+  } else if ($this.currentEffectValue === 'phobos') {
+    $this.picture.style.filter = 'blur(' + 3 * value + 'px)';
+
+  } else if ($this.currentEffectValue === 'heat') {
+    $this.picture.style.filter = 'brightness(' + 3 * value + ')';
+
+  }
+
+  if ($this.currentEffectValue !== 'none') {
+    this.slider.classList.remove('hidden');
+    this.effectLevel.value = Math.round(100 * value);
+  }
+
 };
 
 /**
@@ -364,6 +473,38 @@ PictureUploader.prototype.validateForm = function () {
     }
   });
 
+};
+
+// события изменения масштаба картинки
+PictureUploader.prototype.bindScaleEvents = function () {
+  var $this = this;
+
+  this.scaleControlBigger.addEventListener('click', function () {
+    $this.scaleControlValueCurrent += 25;
+    if ($this.scaleControlValueCurrent > 100) {
+      $this.scaleControlValueCurrent = 100;
+    }
+    $this.setScaleControlValue($this.scaleControlValueCurrent);
+    $this.setImgScale($this.scaleControlValueCurrent / 100);
+  });
+
+  this.scaleControlSmaller.addEventListener('click', function () {
+    $this.scaleControlValueCurrent -= 25;
+    if ($this.scaleControlValueCurrent < 25) {
+      $this.scaleControlValueCurrent = 25;
+    }
+    $this.setScaleControlValue($this.scaleControlValueCurrent);
+    $this.setImgScale($this.scaleControlValueCurrent / 100);
+  });
+
+};
+
+PictureUploader.prototype.setScaleControlValue = function (value) {
+  this.scaleControlValue.value = value + '%';
+};
+
+PictureUploader.prototype.setImgScale = function (value) {
+  this.picture.style.transform = 'scale(' + value + ')';
 };
 
 /*
