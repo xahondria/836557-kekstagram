@@ -1,6 +1,24 @@
 'use strict';
 
 // utils
+
+/*
+ *
+ * Returns a number whose value is limited to the given range.
+ *
+ * Example: limit the output of this computation to between 0 and 255
+ * (x * 255).clamp(0, 255)
+ *
+ * @param {Number} min The lower boundary of the output range
+ * @param {Number} max The upper boundary of the output range
+ * @returns A number in the range [min, max]
+ * @type Number
+ */
+var clamp = function (value, min, max) {
+  return Math.min(Math.max(value, min), max);
+};
+
+
 /* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
 var moveSliderPin = function (sliderElement, sliderPin, cb) {
   sliderPin.addEventListener('mousedown', function (ev) {
@@ -16,12 +34,7 @@ var moveSliderPin = function (sliderElement, sliderPin, cb) {
 
       var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
 
-      if (sliderValue < 0) {
-        sliderValue = 0;
-      } else if (sliderValue > 1) {
-        sliderValue = 1;
-      }
-      cb(sliderValue);
+      cb(clamp(sliderValue, 0, 1));
 
     };
 
@@ -374,33 +387,26 @@ PictureUploader.prototype.setEffectValue = function (value) {
     this.slider.classList.add('hidden');
     $this.picture.style.filter = '';
 
-
   } else if ($this.currentEffectValue === 'chrome') {
-    this.slider.classList.remove('hidden');
     $this.picture.style.filter = 'grayscale(' + value + ')';
-    $this.effectLevel.value = Math.round(100 * value);
 
   } else if ($this.currentEffectValue === 'sepia') {
-    this.slider.classList.remove('hidden');
     $this.picture.style.filter = 'sepia(' + value + ')';
-    $this.effectLevel.value = Math.round(100 * value);
 
   } else if ($this.currentEffectValue === 'marvin') {
-    this.slider.classList.remove('hidden');
     $this.picture.style.filter = 'invert(' + 100 * value + '%)';
-    $this.effectLevel.value = Math.round(100 * value);
 
   } else if ($this.currentEffectValue === 'phobos') {
-    this.slider.classList.remove('hidden');
     $this.picture.style.filter = 'blur(' + 3 * value + 'px)';
-    $this.effectLevel.value = Math.round(100 * value);
 
   } else if ($this.currentEffectValue === 'heat') {
-    this.slider.classList.remove('hidden');
     $this.picture.style.filter = 'brightness(' + 3 * value + ')';
-    $this.effectLevel.value = Math.round(100 * value);
 
   }
+
+  this.slider.classList.remove('hidden');
+  this.effectLevel.value = Math.round(100 * value);
+
 };
 
 /**
