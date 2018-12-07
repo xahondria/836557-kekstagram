@@ -404,8 +404,10 @@ PictureUploader.prototype.setEffectValue = function (value) {
 
   }
 
-  this.slider.classList.remove('hidden');
-  this.effectLevel.value = Math.round(100 * value);
+  if ($this.currentEffectValue !== 'none') {
+    this.slider.classList.remove('hidden');
+    this.effectLevel.value = Math.round(100 * value);
+  }
 
 };
 
