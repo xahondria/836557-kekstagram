@@ -7,11 +7,14 @@
 (function () {
   var picturesData = new window.PicturesData();
 
-  window.utils.createDomElements(picturesData.properties, window.PostRenderer.addPicture, window.PostRenderer.container);
+  picturesData.getProperties().then(function () {
+    window.utils.createDomElements(picturesData.properties, window.PostRenderer.addPicture, window.PostRenderer.container);
 
-  window.BigPictureRenderer.bindEvents();
+    window.BigPictureRenderer.bindEvents();
 
-  var pictureUploader = new window.PictureUploader();
+    var pictureUploader = new window.PictureUploader();
 
-  pictureUploader.bindEvents();
+    pictureUploader.bindEvents();
+  });
+
 })();

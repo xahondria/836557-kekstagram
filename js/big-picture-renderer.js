@@ -29,8 +29,8 @@
       pictureData.comments.forEach(function (comment) {
         var newComment = commentTemplate.cloneNode(true);
 
-        newComment.querySelector('.social__picture').src = 'img/avatar-' + Math.floor(Math.random() * 6 + 1) + '.svg';
-        newComment.querySelector('.social__text').textContent = comment;
+        newComment.querySelector('.social__picture').src = comment.avatar;
+        newComment.querySelector('.social__text').textContent = comment.message;
 
         fragment.appendChild(newComment);
       });
