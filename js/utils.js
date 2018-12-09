@@ -127,7 +127,7 @@
 
       // window.backend.postDataFetsh(URL, formData);
 
-      window.backend.postDataXHR(formData, function (response) {
+      window.backend.postDataXHR(URL, formData, function (response) {
         // userDialog.classList.add('hidden');
         console.log('!!!');
       });

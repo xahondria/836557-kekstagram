@@ -28,10 +28,7 @@
     }
   };
 
-
-  var URL = 'https://js.dump.academy/kekstagram';
-
-  window.backend.postDataXHR = function (data, onSuccess) {
+  window.backend.postDataXHR = function (URL, data, onSuccess) {
     var xhr = new XMLHttpRequest();
     xhr.responseType = 'json';
 
