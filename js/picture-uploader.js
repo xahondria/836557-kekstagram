@@ -6,6 +6,9 @@
   var PictureUploader = function PictureUploader() {
     this.element = document.querySelector('.img-upload');
 
+    this.form = this.element.querySelector('.img-upload__form');
+    window.utils.makeFormAjax(this.form);
+
     this.uploadOverlay = this.element.querySelector('.img-upload__overlay');
     this.uploadOverlayHideButton = this.element.querySelector('.img-upload__cancel');
     this.inputFile = this.element.querySelector('#upload-file');
