@@ -12,15 +12,24 @@
   PicturesData.prototype.getProperties = function () {
     var $this = this;
 
-    if (this.isLoaded) {
-      return window.Promise.resolve(this.properties);
-    }
+    return new window.Promise(function (resolve, reject) {
 
-    return window.backend.getData().then(function (data) {
-      $this.properties = data;
-      $this.isLoaded = true;
-      return $this.properties;
+      if ($this.isLoaded) {
+        resolve($this.properties);
+        return;
+      }
+
+      window.backend.getData()
+        .then(function (data) {
+          $this.properties = data;
+          $this.isLoaded = true;
+          return $this.properties;
+        })
+        .then(resolve)
+        .catch(reject);
     });
+
+
   };
 
   window.PicturesData = PicturesData;

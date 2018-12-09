@@ -118,25 +118,18 @@
   /* отправляем форму*/
   window.utils.makeFormAjax = function (form) {
     var URL = form.action;
-    console.log(URL);
-    console.log(form);
 
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var formData = new FormData(form);
 
-      // window.backend.postDataFetsh(URL, formData);
-
-      window.backend.postDataXHR(URL, formData, function (response) {
-        // userDialog.classList.add('hidden');
-        console.log('!!!');
-      });
-
-      // console.log(formData);
-      //
-      // for(var pair of formData.entries()) {
-      //   console.log(pair[0]+ ', '+ pair[1]);
-      // }
+      window.backend.postData(URL, formData)
+        .then(function (data) {
+          console.log(data);
+        })
+        .catch(function (error) {
+          // TODO : обработать ошибку
+        });
 
     });
   };

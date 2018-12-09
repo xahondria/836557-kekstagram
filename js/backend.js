@@ -15,29 +15,14 @@
       });
     },
 
-    postDataFetsh: function (URL, formData) {
+    postData: function (URL, formData) {
       return fetch(URL, {
         method: 'post',
         body: formData,
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
       }).then(function (response) {
         return response.json();
       });
-    }
-  };
-
-  window.backend.postDataXHR = function (URL, data, onSuccess) {
-    var xhr = new XMLHttpRequest();
-    xhr.responseType = 'json';
-
-    xhr.addEventListener('load', function () {
-      onSuccess(xhr.response);
-    });
-
-    xhr.open('post', URL);
-    xhr.send(data);
+    },
   };
 
 })();

@@ -3,7 +3,7 @@
 (function () {
 
   /* Объект описывает попап с большой картинкой, комментариями, описанием и т.п. */
-  var BigPictureRenderer = {
+  window.BigPictureRenderer = {
     element: document.querySelector('.big-picture'),
 
     renderPreview: function (pictureData) {
@@ -72,7 +72,5 @@
 
     }
   };
-
-  window.BigPictureRenderer = BigPictureRenderer;
 
 })();
