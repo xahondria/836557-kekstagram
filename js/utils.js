@@ -2,9 +2,9 @@
 
 (function () {
 
-  window.utils = {};
+  window.utils = {
 
-  /*
+    /*
    *
    * Returns a number whose value is limited to the given range.
    *
@@ -16,122 +16,126 @@
    * @returns A number in the range [min, max]
    * @type Number
    */
-  var clamp = function (value, min, max) {
-    return Math.min(Math.max(value, min), max);
-  };
+    clamp: function (value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    },
 
-  Object.defineProperty(window.utils, 'clamp', {
-    value: clamp,
-    enumerable: true,
-  });
+    /* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
+    moveSliderPin: function (sliderElement, sliderPin, cb) {
+      sliderPin.addEventListener('mousedown', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
 
-  /* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
-  var moveSliderPin = function (sliderElement, sliderPin, cb) {
-    sliderPin.addEventListener('mousedown', function (ev) {
-      ev.preventDefault();
-      ev.stopPropagation();
+        var sliderWidth = sliderElement.getBoundingClientRect().width;
+        var sliderCoordX = sliderElement.getBoundingClientRect().left;
 
-      var sliderWidth = sliderElement.getBoundingClientRect().width;
-      var sliderCoordX = sliderElement.getBoundingClientRect().left;
+        var onMouseMove = function (moveEv) {
+          moveEv.preventDefault();
+          var newCoordX = moveEv.clientX;
 
-      var onMouseMove = function (moveEv) {
-        moveEv.preventDefault();
-        var newCoordX = moveEv.clientX;
+          var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
 
-        var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
+          cb(window.utils.clamp(sliderValue, 0, 1));
 
-        cb(clamp(sliderValue, 0, 1));
+        };
 
-      };
+        var onMouseUp = function (upEv) {
+          upEv.preventDefault();
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
 
-      var onMouseUp = function (upEv) {
-        upEv.preventDefault();
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
 
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
+      });
 
-    });
+    },
 
-  };
+    /* Функция выбирает случайный элемент из массива*/
+    getRandomElement: function (array) {
 
-  Object.defineProperty(window.utils, 'moveSliderPin', {
-    value: moveSliderPin,
-    enumerable: true,
-  });
+      var randomIndex = Math.floor(Math.random() * array.length);
+      return array[randomIndex];
+    },
 
+    /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
+    getRandomElements: function (inputArrayOfElements, maxNumberOfElements) {
+      inputArrayOfElements = inputArrayOfElements.slice();
 
-  /* Функция выбирает случайный элемент из массива*/
-  var getRandomElement = function (array) {
+      if (inputArrayOfElements.length < maxNumberOfElements) {
+        maxNumberOfElements = inputArrayOfElements.length;
+      }
 
-    var randomIndex = Math.floor(Math.random() * array.length);
-    return array[randomIndex];
-  };
+      var randomElements = [];
 
-  Object.defineProperty(window.utils, 'getRandomElement', {
-    value: getRandomElement,
-    enumerable: true,
-  });
+      while (randomElements.length < maxNumberOfElements) {
+        var randomIndex = Math.floor(Math.random() * inputArrayOfElements.length);
+        randomElements.push(inputArrayOfElements[randomIndex]);
+        inputArrayOfElements.splice(randomIndex, 1);
+      }
+      return randomElements;
+    },
 
+    /* Функция создает фрагмент разметки и вставляет его в заданное место*/
+    createDomElements: function (dataArray, elementGenerator, positionInDom) {
+      var fragment = document.createDocumentFragment();
 
-  /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
-  var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
-    inputArrayOfElements = inputArrayOfElements.slice();
+      dataArray.forEach(function (data) {
+        fragment.appendChild(elementGenerator(data));
+      });
 
-    if (inputArrayOfElements.length < maxNumberOfElements) {
-      maxNumberOfElements = inputArrayOfElements.length;
-    }
+      positionInDom.appendChild(fragment);
+    },
 
-    var randomElements = [];
+    /* отправляем форму*/
+    makeFormAjax: function (form, cb) {
+      var URL = form.action;
 
-    while (randomElements.length < maxNumberOfElements) {
-      var randomIndex = Math.floor(Math.random() * inputArrayOfElements.length);
-      randomElements.push(inputArrayOfElements[randomIndex]);
-      inputArrayOfElements.splice(randomIndex, 1);
-    }
-    return randomElements;
-  };
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var formData = new FormData(form);
 
-  Object.defineProperty(window.utils, 'getRandomElements', {
-    value: getRandomElements,
-    enumerable: true,
-  });
-
-  /* Функция создает фрагмент разметки и вставляет его в заданное место*/
-  var createDomElements = function (dataArray, elementGenerator, positionInDom) {
-    var fragment = document.createDocumentFragment();
-
-    dataArray.forEach(function (data) {
-      fragment.appendChild(elementGenerator(data));
-    });
-
-    positionInDom.appendChild(fragment);
-  };
-
-  Object.defineProperty(window.utils, 'createDomElements', {
-    value: createDomElements,
-    enumerable: true,
-  });
-
-  /* отправляем форму*/
-  window.utils.makeFormAjax = function (form) {
-    var URL = form.action;
-
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var formData = new FormData(form);
-
-      window.backend.postData(URL, formData)
-        .then(function (data) {
-          console.log(data);
+        window.backend.postData(URL, formData)
+        .then(function () {
+        })
+        .then(function () {
+          return cb(null);
         })
         .catch(function (error) {
-          // TODO : обработать ошибку
+          return cb(error);
         });
 
-    });
+      });
+    },
+
+    /* проверка на наличие одинаковых элементов в массиве*/
+    findDuplicates: function (array, cb) {
+      var values = {};
+      array.forEach(function (element) {
+        if (element in values) {
+          return cb();
+        }
+        values[element] = true;
+        return false;
+      });
+    },
+
+    //  удаляем элемент по клику
+    removeElementByClick: function (ev, element) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      element.remove();
+    },
+
+    //  удаляем элемент по Esc
+    removeElementByEsc: function (ev, element) {
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        element.remove();
+      }
+    },
+
   };
 
 })();

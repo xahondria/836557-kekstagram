@@ -15,8 +15,8 @@
     var pictureUploader = new window.PictureUploader();
 
     pictureUploader.bindEvents();
-  }).catch(function (error) {
-    console.log(error);
+  }).catch(function () {
+    // TODO: show error
   });
 
 })();
