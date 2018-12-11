@@ -2,13 +2,13 @@
 
 (function () {
 
-  var URLS = {
+  var Urls = {
     GET_DATA: 'https://js.dump.academy/kekstagram/data',
   };
 
   window.backend = {
     getData: function () {
-      return fetch(URLS.GET_DATA, {
+      return fetch(Urls.GET_DATA, {
         method: 'get',
       }).then(function (response) {
         return response.json();

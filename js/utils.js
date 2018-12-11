@@ -98,8 +98,6 @@
 
         window.backend.postData(URL, formData)
         .then(function () {
-        })
-        .then(function () {
           return cb(null);
         })
         .catch(function (error) {
