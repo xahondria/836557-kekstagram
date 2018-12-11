@@ -4,6 +4,7 @@
 
   /* Класс описывает редактор загружаемых изображений*/
   var PictureUploader = function PictureUploader() {
+    var $this = this;
     this.element = document.querySelector('.img-upload');
 
     this.uploadOverlay = this.element.querySelector('.img-upload__overlay');
@@ -33,6 +34,31 @@
 
     this.hashtagsInput = this.element.querySelector('.text__hashtags');
     this.pictureDescription = this.element.querySelector('.text__description');
+
+    this.uploadSuccessTemplate = document.querySelector('#success')
+      .content
+      .querySelector('.success');
+
+    this.uploadErrorTemplate = document.querySelector('#error')
+      .content
+      .querySelector('.error');
+
+    this.main = document.querySelector('main');
+
+    this.form = this.element.querySelector('.img-upload__form');
+
+    window.utils.makeFormAjax(this.form, function (error) {
+      if (error) {
+        $this.hide();
+        $this.errorPopupEvents();
+
+      } else {
+        $this.hide();
+        $this.successPopupEvents();
+      }
+
+    });
+
   };
 
   PictureUploader.prototype.show = function () {
@@ -42,6 +68,8 @@
   PictureUploader.prototype.hide = function () {
     this.uploadOverlay.classList.add('hidden');
     this.inputFile.value = '';
+    this.hashtagsInput.value = '';
+    this.pictureDescription.value = '';
   };
 
   /**
@@ -185,54 +213,97 @@
   };
 
   /* события валидации формы*/
-  PictureUploader.prototype.findDuplicates = function (arr, message) {
-    var $this = this;
-
-    var values = {};
-    arr.forEach(function (element) {
-      if (element in values) {
-        return $this.hashtagsInput.setCustomValidity(message);
-      }
-      values[element] = true;
-      return $this.hashtagsInput.setCustomValidity('');
-    });
-    return false;
-  };
-
   PictureUploader.prototype.validateForm = function () {
     var $this = this;
 
     /* hashtags*/
-    this.hashtagsInput.addEventListener('change', function () {
+    this.hashtagsInput.addEventListener('change', function (customValidity) {
+      customValidity = '';
 
       var str = $this.hashtagsInput.value;
       str = str.toLowerCase();
-
       var arr = str.split(' ');
 
-      $this.findDuplicates(arr, 'Один и тот же хэш-тег не может быть использован дважды');
+      window.utils.findDuplicates(arr, function () {
+        customValidity = 'Один и тот же хэш-тег не может быть использован дважды';
+      });
 
       if (arr.length > 5) {
-        $this.hashtagsInput.setCustomValidity('Нельзя указать больше пяти хэш-тегов');
+        customValidity = 'Нельзя указать больше пяти хэш-тегов';
       } else {
         arr.forEach(function (element) {
 
           if (element.indexOf('#') !== 0) {
-            $this.hashtagsInput.setCustomValidity('Хеш-тег должен начинаться с символа #');
+            customValidity = 'Хеш-тег должен начинаться с символа #';
 
           } else if (element.length < 2) {
-            $this.hashtagsInput.setCustomValidity('Хеш-тег не может состоять только из одной решётки');
+            customValidity = 'Хеш-тег не может состоять только из одной решётки';
 
           } else if (element.length >= 20) {
-            $this.hashtagsInput.setCustomValidity('Хеш-тег должен быть короче 20 символов');
+            customValidity = 'Хеш-тег должен быть короче 20 символов';
 
           }
 
         });
       }
+      $this.hashtagsInput.setCustomValidity(customValidity);
+      if (customValidity !== '') {
+        $this.hashtagsInput.style.borderColor = 'red';
+      } else {
+        $this.hashtagsInput.style.borderColor = '';
+      }
     });
 
   };
+
+  /* удаление попапа из DOM*/
+  PictureUploader.prototype.closeUploadEventPopup = function (element, elementButton) {
+    elementButton.addEventListener(
+        'click',
+        function (ev) {
+          window.utils.removeElementByClick(ev, element);
+        },
+        {once: true});
+
+    window.addEventListener(
+        'click',
+        function (ev) {
+          window.utils.removeElementByClick(ev, element);
+        },
+        {once: true});
+
+    window.addEventListener(
+        'keydown',
+        function (ev) {
+          window.utils.removeElementByEsc(ev, element);
+        },
+        {once: true});
+  };
+
+  /* события успешной отправки фотографии*/
+  PictureUploader.prototype.successPopupEvents = function () {
+    //  добавляем элемент
+    var popupSuccess = this.uploadSuccessTemplate.cloneNode(true);
+    this.main.appendChild(popupSuccess);
+
+    var element = this.main.querySelector('.success');
+    var elementButton = element.querySelector('.success__button');
+
+    this.closeUploadEventPopup(element, elementButton);
+  };
+
+  /* события ошибок при попытке отправки фотографии*/
+  PictureUploader.prototype.errorPopupEvents = function () {
+    //  добавляем элемент
+    var popupError = this.uploadErrorTemplate.cloneNode(true);
+    this.main.appendChild(popupError);
+
+    var element = this.main.querySelector('.error');
+    var elementButton = element.querySelector('.error__button');
+
+    this.closeUploadEventPopup(element, elementButton);
+  };
+
 
   // события изменения масштаба картинки
   PictureUploader.prototype.bindScaleEvents = function () {

@@ -2,9 +2,9 @@
 
 (function () {
 
-  window.utils = {};
+  window.utils = {
 
-  /*
+    /*
    *
    * Returns a number whose value is limited to the given range.
    *
@@ -16,103 +16,124 @@
    * @returns A number in the range [min, max]
    * @type Number
    */
-  var clamp = function (value, min, max) {
-    return Math.min(Math.max(value, min), max);
-  };
+    clamp: function (value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    },
 
-  Object.defineProperty(window.utils, 'clamp', {
-    value: clamp,
-    enumerable: true,
-  });
+    /* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
+    moveSliderPin: function (sliderElement, sliderPin, cb) {
+      sliderPin.addEventListener('mousedown', function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
 
-  /* функция возвращает значение от 0 до 1 при перетаскивании пина мышью*/
-  var moveSliderPin = function (sliderElement, sliderPin, cb) {
-    sliderPin.addEventListener('mousedown', function (ev) {
+        var sliderWidth = sliderElement.getBoundingClientRect().width;
+        var sliderCoordX = sliderElement.getBoundingClientRect().left;
+
+        var onMouseMove = function (moveEv) {
+          moveEv.preventDefault();
+          var newCoordX = moveEv.clientX;
+
+          var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
+
+          cb(window.utils.clamp(sliderValue, 0, 1));
+
+        };
+
+        var onMouseUp = function (upEv) {
+          upEv.preventDefault();
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
+
+      });
+
+    },
+
+    /* Функция выбирает случайный элемент из массива*/
+    getRandomElement: function (array) {
+
+      var randomIndex = Math.floor(Math.random() * array.length);
+      return array[randomIndex];
+    },
+
+    /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
+    getRandomElements: function (inputArrayOfElements, maxNumberOfElements) {
+      inputArrayOfElements = inputArrayOfElements.slice();
+
+      if (inputArrayOfElements.length < maxNumberOfElements) {
+        maxNumberOfElements = inputArrayOfElements.length;
+      }
+
+      var randomElements = [];
+
+      while (randomElements.length < maxNumberOfElements) {
+        var randomIndex = Math.floor(Math.random() * inputArrayOfElements.length);
+        randomElements.push(inputArrayOfElements[randomIndex]);
+        inputArrayOfElements.splice(randomIndex, 1);
+      }
+      return randomElements;
+    },
+
+    /* Функция создает фрагмент разметки и вставляет его в заданное место*/
+    createDomElements: function (dataArray, elementGenerator, positionInDom) {
+      var fragment = document.createDocumentFragment();
+
+      dataArray.forEach(function (data) {
+        fragment.appendChild(elementGenerator(data));
+      });
+
+      positionInDom.appendChild(fragment);
+    },
+
+    /* отправляем форму*/
+    makeFormAjax: function (form, cb) {
+      var URL = form.action;
+
+      form.addEventListener('submit', function (ev) {
+        ev.preventDefault();
+        var formData = new FormData(form);
+
+        window.backend.postData(URL, formData)
+        .then(function () {
+          return cb(null);
+        })
+        .catch(function (error) {
+          return cb(error);
+        });
+
+      });
+    },
+
+    /* проверка на наличие одинаковых элементов в массиве*/
+    findDuplicates: function (array, cb) {
+      var values = {};
+      array.forEach(function (element) {
+        if (element in values) {
+          return cb();
+        }
+        values[element] = true;
+        return false;
+      });
+    },
+
+    //  удаляем элемент по клику
+    removeElementByClick: function (ev, element) {
       ev.preventDefault();
       ev.stopPropagation();
+      element.remove();
+    },
 
-      var sliderWidth = sliderElement.getBoundingClientRect().width;
-      var sliderCoordX = sliderElement.getBoundingClientRect().left;
-
-      var onMouseMove = function (moveEv) {
-        moveEv.preventDefault();
-        var newCoordX = moveEv.clientX;
-
-        var sliderValue = (newCoordX - sliderCoordX) / sliderWidth;
-
-        cb(clamp(sliderValue, 0, 1));
-
-      };
-
-      var onMouseUp = function (upEv) {
-        upEv.preventDefault();
-        document.removeEventListener('mousemove', onMouseMove);
-        document.removeEventListener('mouseup', onMouseUp);
-      };
-
-      document.addEventListener('mousemove', onMouseMove);
-      document.addEventListener('mouseup', onMouseUp);
-
-    });
+    //  удаляем элемент по Esc
+    removeElementByEsc: function (ev, element) {
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        element.remove();
+      }
+    },
 
   };
-
-  Object.defineProperty(window.utils, 'moveSliderPin', {
-    value: moveSliderPin,
-    enumerable: true,
-  });
-
-
-  /* Функция выбирает случайный элемент из массива*/
-  var getRandomElement = function (array) {
-
-    var randomIndex = Math.floor(Math.random() * array.length);
-    return array[randomIndex];
-  };
-
-  Object.defineProperty(window.utils, 'getRandomElement', {
-    value: getRandomElement,
-    enumerable: true,
-  });
-
-
-  /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
-  var getRandomElements = function (inputArrayOfElements, maxNumberOfElements) {
-    inputArrayOfElements = inputArrayOfElements.slice();
-
-    if (inputArrayOfElements.length < maxNumberOfElements) {
-      maxNumberOfElements = inputArrayOfElements.length;
-    }
-
-    var randomElements = [];
-
-    while (randomElements.length < maxNumberOfElements) {
-      var randomIndex = Math.floor(Math.random() * inputArrayOfElements.length);
-      randomElements.push(inputArrayOfElements[randomIndex]);
-      inputArrayOfElements.splice(randomIndex, 1);
-    }
-    return randomElements;
-  };
-
-  Object.defineProperty(window.utils, 'getRandomElements', {
-    value: getRandomElements,
-    enumerable: true,
-  });
-
-  /* Функция создает фрагмент разметки и вставляет его в заданное место*/
-  var createDomElements = function (dataArray, elementGenerator, positionInDom) {
-    var fragment = document.createDocumentFragment();
-
-    dataArray.forEach(function (data) {
-      fragment.appendChild(elementGenerator(data));
-    });
-
-    positionInDom.appendChild(fragment);
-  };
-
-  Object.defineProperty(window.utils, 'createDomElements', {
-    value: createDomElements,
-    enumerable: true,
-  });
 
 })();
