@@ -12,11 +12,23 @@
       this.element.querySelector('.comments-count').textContent = pictureData.comments.length;
       this.element.querySelector('.social__caption').textContent = pictureData.description;
 
-      this.element.querySelector('.social__comment-count').classList.add('visually-hidden');
       this.element.querySelector('.comments-loader').classList.add('visually-hidden');
     },
 
     renderComments: function (pictureData) {
+      var $this = this;
+
+      /* Нарезаем массивы комметариев*/
+      var lastCommentIndex = 0;
+      var COMMENTS_TO_ADD_NUMBER = 5;
+
+      var sliceCommentsToAdd = function () {
+        var commentsToAdd = pictureData.comments.slice(lastCommentIndex, lastCommentIndex + COMMENTS_TO_ADD_NUMBER);
+        lastCommentIndex += commentsToAdd.length;
+        return commentsToAdd;
+      };
+
+      /* создаем fragment с n комментариев*/
       var fragment = document.createDocumentFragment();
 
       var commentContainer = this.element.querySelector('.social__comments');
@@ -26,16 +38,31 @@
       commentContainer.innerHTML = '';
 
       /* Создаем новые комментарии*/
-      pictureData.comments.forEach(function (comment) {
-        var newComment = commentTemplate.cloneNode(true);
+      var addComments = function () {
+        sliceCommentsToAdd().forEach(function (comment) {
+          var newComment = commentTemplate.cloneNode(true);
 
-        newComment.querySelector('.social__picture').src = comment.avatar;
-        newComment.querySelector('.social__text').textContent = comment.message;
+          newComment.querySelector('.social__picture').src = comment.avatar;
+          newComment.querySelector('.social__text').textContent = comment.message;
 
-        fragment.appendChild(newComment);
+          fragment.appendChild(newComment);
+        });
+
+        commentContainer.appendChild(fragment);
+
+        $this.element.querySelector('.comments-count-rendered').textContent = lastCommentIndex;
+        if (lastCommentIndex >= pictureData.comments.length) {
+          $this.element.querySelector('.comments-loader').classList.add('visually-hidden');
+        } else {
+          $this.element.querySelector('.comments-loader').classList.remove('visually-hidden');
+        }
+      };
+
+      addComments();
+
+      this.element.querySelector('.comments-loader').addEventListener('click', function () {
+        addComments();
       });
-
-      commentContainer.appendChild(fragment);
 
     },
 
