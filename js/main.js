@@ -7,16 +7,22 @@
 (function () {
   var picturesData = new window.PicturesData();
 
-  picturesData.getProperties().then(function () {
-    window.utils.createDomElements(picturesData.properties, window.PostRenderer.addPicture, window.PostRenderer.container);
+  picturesData.getProperties()
+    .then(function () {
 
-    window.BigPictureRenderer.bindEvents();
+      var sortPicturesData = new window.SortPicturesData(picturesData.properties);
+      sortPicturesData.bindEvents();
 
-    var pictureUploader = new window.PictureUploader();
+      // TODO заменить входящие параметры
+      window.utils.createDomElements(picturesData.properties, window.PostRenderer.addPicture, window.PostRenderer.container);
 
-    pictureUploader.bindEvents();
-  }).catch(function () {
+      window.BigPictureRenderer.bindEvents();
+
+      var pictureUploader = new window.PictureUploader();
+
+      pictureUploader.bindEvents();
+    }).catch(function () {
     // TODO: show error
-  });
+    });
 
 })();

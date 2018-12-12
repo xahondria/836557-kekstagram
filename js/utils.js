@@ -97,12 +97,12 @@
         var formData = new FormData(form);
 
         window.backend.postData(URL, formData)
-        .then(function () {
-          return cb(null);
-        })
-        .catch(function (error) {
-          return cb(error);
-        });
+          .then(function () {
+            return cb(null);
+          })
+          .catch(function (error) {
+            return cb(error);
+          });
 
       });
     },
