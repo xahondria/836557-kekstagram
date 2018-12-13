@@ -10,14 +10,12 @@
     this.filters.classList.remove('img-filters--inactive');
 
     this.filterIdListMap = {
-      'filter-popular': this.sortByLikes.bind(this, data),
+      'filter-popular': this.sortByPopularity.bind(this, data),
       'filter-new': this.getRandomElements.bind(this, data),
-      'filter-discussed': this.sortByPopularity.bind(this, data),
+      'filter-discussed': this.sortByCommentsNumber.bind(this, data),
     };
 
     this.sortedData = [];
-
-    this.timeout = null;
 
   };
 
@@ -30,42 +28,36 @@
     var $this = this;
     elementList.forEach(function (button) {
       button.addEventListener('click', function () {
-        if (button.classList.contains(className)) {
+        if (button.classList.contains(className) && button.id !== 'filter-new') {
           return;
         }
         elementList.forEach(function (element) {
           element.classList.remove(className);
         });
         button.classList.add(className);
-        $this.filterIdListMap[button.id]();
 
-        $this.renderData($this.sortedData);
+        window.utils.debounce(500, function () {
+          $this.filterIdListMap[button.id]();
+          $this.renderData($this.sortedData);
+        });
       });
     });
   };
 
-  PicturesRenderer.prototype.changeFilter = function (id) {
-    this.filterButtons.forEach(function (button) {
-      if (button.id !== id) {
-        return;
-      }
+  PicturesRenderer.prototype.renderDefault = function () {
+    var $this = this;
 
-      button.click();
+    this.filterButtons.forEach(function (button) {
+      if (button.classList.contains('img-filters__button--active')) {
+        $this.filterIdListMap[button.id]();
+        $this.renderData($this.sortedData);
+      }
     });
   };
 
-  // создаем массив, отсортированный по лайкам
-  PicturesRenderer.prototype.sortByLikes = function (data) {
-    this.sortedData = data.slice().sort(function (left, right) {
-      if (left.likes < right.likes) {
-        return 1;
-      }
-      if (left.likes > right.likes) {
-        return -1;
-      }
-      return 0;
-
-    });
+  // создаем массив "Популярные — фотографии в изначальном порядке"
+  PicturesRenderer.prototype.sortByPopularity = function (data) {
+    this.sortedData = data.slice();
   };
 
   // создаем массив "Новые — 10 случайных, не повторяющихся фотографий"
@@ -73,8 +65,8 @@
     this.sortedData = window.utils.getRandomPictures(data, 10);
   };
 
-  // создаем массив, отсортированный по количеству комментариев
-  PicturesRenderer.prototype.sortByPopularity = function (data) {
+  // создаем массив "Обсуждаемые — фотографии, отсортированные в порядке убывания количества комментариев"
+  PicturesRenderer.prototype.sortByCommentsNumber = function (data) {
     this.sortedData = data.slice().sort(function (left, right) {
       if (left.comments.length < right.comments.length) {
         return 1;
@@ -110,6 +102,6 @@
   PicturesRenderer.container = document.querySelector('.pictures');
 
 
-  window.SortPicturesData = PicturesRenderer;
+  window.PicturesRenderer = PicturesRenderer;
 
 })();

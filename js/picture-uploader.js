@@ -112,7 +112,8 @@
       if ($this.inputFile.files.length > 0) {
         $this.loadImage($this.inputFile.files[0], function (err, imgURL) {
           if (err) {
-            // TODO: show error
+            /* eslint-disable-next-line*/
+            console.log(err);
             return;
           }
           $this.picture.src = imgURL;

@@ -7,22 +7,22 @@
 (function () {
   var picturesData = new window.PicturesData();
 
-  picturesData.getProperties()
-    .then(function () {
+  picturesData.getProperties().then(function () {
 
-      var sortPicturesData = new window.SortPicturesData(picturesData.properties);
-      sortPicturesData.bindEvents();
+    var picturesRenderer = new window.PicturesRenderer(picturesData.properties);
+    picturesRenderer.bindEvents();
 
-      sortPicturesData.changeFilter(window.SortPicturesData.filters.popular);
+    picturesRenderer.renderDefault();
 
-      window.BigPictureRenderer.bindEvents();
+    window.BigPictureRenderer.bindEvents();
 
-      var pictureUploader = new window.PictureUploader();
+    var pictureUploader = new window.PictureUploader();
 
-      pictureUploader.bindEvents();
+    pictureUploader.bindEvents();
 
-    }).catch(function () {
-    // TODO: show error
-    });
+  }).catch(function (error) {
+    /* eslint-disable-next-line*/
+    console.log(error);
+  });
 
 })();
