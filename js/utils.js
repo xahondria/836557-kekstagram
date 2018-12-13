@@ -135,12 +135,18 @@
     },
 
     // «устранение дребезга». debounceInterval в ms
-    debounce: function (ms, cb) {
-      if (window.utils.lastTimeout) {
-        clearTimeout(window.utils.lastTimeout);
-      }
-      window.utils.lastTimeout = null;
-      window.utils.lastTimeout = window.setTimeout(cb, ms);
+    debounce: function (f, delay) {
+      var lastTimeout;
+      return function () {
+
+        if (lastTimeout) {
+          clearTimeout(lastTimeout);
+        }
+        var args = Array.from(arguments);
+        lastTimeout = setTimeout(function () {
+          f.apply(null, args);
+        }, delay);
+      };
     },
 
   };

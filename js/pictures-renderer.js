@@ -2,6 +2,7 @@
 
 (function () {
   var PicturesRenderer = function (data) {
+    var $this = this;
     // elements
     this.filters = document.querySelector('.img-filters');
     this.filterButtons = this.filters.querySelectorAll('.img-filters__button');
@@ -16,6 +17,11 @@
     };
 
     this.sortedData = [];
+
+    this.debouncedRender = window.utils.debounce(function (button) {
+      $this.filterIdListMap[button.id]();
+      $this.renderData($this.sortedData);
+    }, 500);
 
   };
 
@@ -36,10 +42,7 @@
         });
         button.classList.add(className);
 
-        window.utils.debounce(500, function () {
-          $this.filterIdListMap[button.id]();
-          $this.renderData($this.sortedData);
-        });
+        $this.debouncedRender(button);
       });
     });
   };
@@ -68,20 +71,10 @@
   // создаем массив "Обсуждаемые — фотографии, отсортированные в порядке убывания количества комментариев"
   PicturesRenderer.prototype.sortByCommentsNumber = function (data) {
     this.sortedData = data.slice().sort(function (left, right) {
-      if (left.comments.length < right.comments.length) {
-        return 1;
+      if (left.comments.length === right.comments.length) {
+        return right.likes - left.likes;
       }
-      if (left.comments.length > right.comments.length) {
-        return -1;
-      }
-      if (left.likes < right.likes) {
-        return 1;
-      }
-      if (left.likes > right.likes) {
-        return -1;
-      }
-      return 0;
-
+      return right.comments.length - left.comments.length;
     });
   };
 
@@ -100,7 +93,6 @@
 
   /* Сюда вставляем готовую разметку с картинками*/
   PicturesRenderer.container = document.querySelector('.pictures');
-
 
   window.PicturesRenderer = PicturesRenderer;
 
