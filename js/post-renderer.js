@@ -23,22 +23,19 @@
 
   /* Шаблон разметки картинки*/
   PostRenderer.template = document.querySelector('#picture')
-  .content
-  .querySelector('.picture');
-
-  /* Сюда вставляем готовую разметку с картинками*/
-  PostRenderer.container = document.querySelector('.pictures');
+    .content
+    .querySelector('.picture');
 
   /**
- *
- * @param {Object} pictureData
- * @param {string} pictureData.url
- * @param {string} pictureData.description
- * @param {number} pictureData.likes
- * @param {Object[]} pictureData.comments
- *
- * @return {HTMLElement}
- */
+   *
+   * @param {Object} pictureData
+   * @param {string} pictureData.url
+   * @param {string} pictureData.description
+   * @param {number} pictureData.likes
+   * @param {Object[]} pictureData.comments
+   *
+   * @return {HTMLElement}
+   */
   PostRenderer.addPicture = function (pictureData) {
 
     var postRenderer = new PostRenderer(pictureData);

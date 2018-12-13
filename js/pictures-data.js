@@ -29,7 +29,6 @@
         .catch(reject);
     });
 
-
   };
 
   window.PicturesData = PicturesData;

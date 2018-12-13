@@ -60,7 +60,7 @@
     },
 
     /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
-    getRandomElements: function (inputArrayOfElements, maxNumberOfElements) {
+    getRandomPictures: function (inputArrayOfElements, maxNumberOfElements) {
       inputArrayOfElements = inputArrayOfElements.slice();
 
       if (inputArrayOfElements.length < maxNumberOfElements) {
@@ -97,12 +97,12 @@
         var formData = new FormData(form);
 
         window.backend.postData(URL, formData)
-        .then(function () {
-          return cb(null);
-        })
-        .catch(function (error) {
-          return cb(error);
-        });
+          .then(function () {
+            return cb(null);
+          })
+          .catch(function (error) {
+            return cb(error);
+          });
 
       });
     },
@@ -132,6 +132,21 @@
         ev.preventDefault();
         element.remove();
       }
+    },
+
+    // «устранение дребезга». debounceInterval в ms
+    debounce: function (f, delay) {
+      var lastTimeout;
+      return function () {
+
+        if (lastTimeout) {
+          clearTimeout(lastTimeout);
+        }
+        var args = Array.from(arguments);
+        lastTimeout = setTimeout(function () {
+          f.apply(null, args);
+        }, delay);
+      };
     },
 
   };

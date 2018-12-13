@@ -8,15 +8,21 @@
   var picturesData = new window.PicturesData();
 
   picturesData.getProperties().then(function () {
-    window.utils.createDomElements(picturesData.properties, window.PostRenderer.addPicture, window.PostRenderer.container);
+
+    var picturesRenderer = new window.PicturesRenderer(picturesData.properties);
+    picturesRenderer.bindEvents();
+
+    picturesRenderer.renderDefault();
 
     window.BigPictureRenderer.bindEvents();
 
     var pictureUploader = new window.PictureUploader();
 
     pictureUploader.bindEvents();
-  }).catch(function () {
-    // TODO: show error
+
+  }).catch(function (error) {
+    /* eslint-disable-next-line*/
+    console.log(error);
   });
 
 })();
