@@ -60,7 +60,7 @@
     },
 
     /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
-    getRandomElements: function (inputArrayOfElements, maxNumberOfElements) {
+    getRandomPictures: function (inputArrayOfElements, maxNumberOfElements) {
       inputArrayOfElements = inputArrayOfElements.slice();
 
       if (inputArrayOfElements.length < maxNumberOfElements) {

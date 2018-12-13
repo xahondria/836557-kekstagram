@@ -13,14 +13,14 @@
       var sortPicturesData = new window.SortPicturesData(picturesData.properties);
       sortPicturesData.bindEvents();
 
-      // TODO заменить входящие параметры
-      window.utils.createDomElements(picturesData.properties, window.PostRenderer.addPicture, window.PostRenderer.container);
+      sortPicturesData.changeFilter(window.SortPicturesData.filters.popular);
 
       window.BigPictureRenderer.bindEvents();
 
       var pictureUploader = new window.PictureUploader();
 
       pictureUploader.bindEvents();
+
     }).catch(function () {
     // TODO: show error
     });
