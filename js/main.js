@@ -20,9 +20,8 @@
 
     pictureUploader.bindEvents();
 
-  }).catch(function (error) {
-    /* eslint-disable-next-line*/
-    console.log(error);
+  }).catch(function () {
+    // TODO show error
   });
 
 })();
