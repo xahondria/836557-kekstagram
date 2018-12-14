@@ -52,13 +52,6 @@
 
     },
 
-    /* Функция выбирает случайный элемент из массива*/
-    getRandomElement: function (array) {
-
-      var randomIndex = Math.floor(Math.random() * array.length);
-      return array[randomIndex];
-    },
-
     /* Функция выбирает заданное количество случайных элементов из массива и формирует из них новый массив*/
     getRandomPictures: function (inputArrayOfElements, maxNumberOfElements) {
       inputArrayOfElements = inputArrayOfElements.slice();
