@@ -63,6 +63,7 @@
 
   PictureUploader.prototype.show = function () {
     this.uploadOverlay.classList.remove('hidden');
+    window.addEventListener('keydown', this.onEscape);
   };
 
   PictureUploader.prototype.hide = function () {
@@ -70,6 +71,7 @@
     this.inputFile.value = '';
     this.hashtagsInput.value = '';
     this.pictureDescription.value = '';
+    window.removeEventListener('keydown', this.onEscape);
   };
 
   /**
@@ -135,15 +137,14 @@
       $this.hide();
     });
 
-    // Закрываем попап
-    window.addEventListener('keydown', function (ev) {
+    this.onEscape = function (ev) {
       if (ev.key === 'Escape' &&
         $this.hashtagsInput !== document.activeElement &&
         $this.pictureDescription !== document.activeElement) {
         ev.preventDefault();
         $this.hide();
       }
-    });
+    };
   };
 
   /* события эффектов на фотографиях*/
@@ -259,26 +260,26 @@
 
   /* удаление попапа из DOM*/
   PictureUploader.prototype.closeUploadEventPopup = function (element, elementButton) {
-    elementButton.addEventListener(
-        'click',
-        function (ev) {
-          window.utils.removeElementByClick(ev, element);
-        },
-        {once: true});
+    var $this = this;
 
-    window.addEventListener(
-        'click',
-        function (ev) {
-          window.utils.removeElementByClick(ev, element);
-        },
-        {once: true});
+    this.closeUploadEventPopup.onClick = function (ev) {
+      window.utils.removeElementByClick(ev, element);
+      $this.closeUploadEventPopup.removeEventListeners();
+    };
 
-    window.addEventListener(
-        'keydown',
-        function (ev) {
-          window.utils.removeElementByEsc(ev, element);
-        },
-        {once: true});
+    this.closeUploadEventPopup.onEscape = function (ev) {
+      window.utils.removeElementByEsc(ev, element);
+      $this.closeUploadEventPopup.removeEventListeners();
+    };
+
+    this.closeUploadEventPopup.removeEventListeners = function () {
+      window.removeEventListener('click', $this.closeUploadEventPopup.onClick);
+      window.removeEventListener('keydown', $this.closeUploadEventPopup.onEscape);
+    };
+
+    elementButton.addEventListener('click', this.closeUploadEventPopup.onClick);
+    window.addEventListener('click', this.closeUploadEventPopup.onClick);
+    window.addEventListener('keydown', this.closeUploadEventPopup.onEscape);
   };
 
   /* события успешной отправки фотографии*/

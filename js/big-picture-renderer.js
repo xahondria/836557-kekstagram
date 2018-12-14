@@ -70,10 +70,19 @@
       this.renderPreview(pictureData);
       this.renderComments(pictureData);
       this.element.classList.remove('hidden');
+      window.addEventListener('keydown', this.onEscape);
     },
 
     hide: function () {
       this.element.classList.add('hidden');
+      window.removeEventListener('keydown', this.onEscape);
+    },
+
+    onEscape: function (ev) {
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
+        window.BigPictureRenderer.hide();
+      }
     },
 
     bindEvents: function () {
@@ -87,14 +96,6 @@
         ev.preventDefault();
         ev.stopPropagation();
         $this.hide();
-      });
-
-      window.addEventListener('keydown', function (ev) {
-        if (ev.key === 'Escape') {
-          ev.preventDefault();
-
-          $this.hide();
-        }
       });
 
     }
